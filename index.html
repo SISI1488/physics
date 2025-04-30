@@ -1,5 +1,4 @@
-<!DOCTYPE html>
-<html lang="ru">
+<!DOCTYPE html><html lang="ru">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -8,689 +7,15 @@
   <script src="https://cdn.jsdelivr.net/npm/particles.js@2.0.0/particles.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/katex@0.16.0/dist/katex.min.js"></script>
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.0/dist/katex.min.css">
-  <link rel="stylesheet" href="styles.css">
-</head>
-<body>
-  <div id="particles-js"></div>
-  
-  <div class="container">
-    <h1>🚀 COSMIC PHYSICS FLASH</h1>
-    <p class="subtitle">Изучай физику как космический исследователь!</p>
-    
-    <div id="daily-tasks">
-      <div class="daily-task">
-        <div>Ежедневная задача: ответьте правильно на 5 карточек</div>
-        <div class="task-progress">
-          <span id="task-counter">0/5</span>
-          <div class="task-bar">
-            <div class="task-progress-bar" id="task-progress-bar" style="width: 0%"></div>
-          </div>
-          <span class="task-reward">+50 очков</span>
-        </div>
-      </div>
-    </div>
-    
-    <div id="game-stats">
-      <div class="stat">
-        <span>Уровень</span>
-        <span class="stat-value" id="level">1</span>
-      </div>
-      <div class="stat">
-        <span>Очки</span>
-        <span class="stat-value" id="score">0</span>
-      </div>
-      <div class="stat">
-        <span>Комбо</span>
-        <span class="stat-value" id="combo">0x</span>
-      </div>
-      <div class="stat">
-        <span>Карточка</span>
-        <span class="stat-value" id="counter">1/25</span>
-      </div>
-    </div>
-
-    <div id="card-container">
-      <div id="card">
-        <div class="side front" id="front">Загрузка...</div>
-        <div class="side back" id="back">Загрузка...</div>
-      </div>
-    </div>
-
-    <div id="answer-section" style="display: none;">
-      <input type="text" id="answer-input" placeholder="Введите ваш ответ...">
-      <div class="controls">
-        <button id="check-answer">Проверить ответ</button>
-      </div>
-      <div class="feedback" id="feedback"></div>
-    </div>
-
-    <div class="progress-container">
-      <div id="progress-bar"></div>
-    </div>
-
-    <div class="controls">
-      <button id="prev-button" onclick="prevCard()">◄ Назад</button>
-      <button id="next-button" onclick="nextCard()">Вперёд ►</button>
-      <button id="answer-button" onclick="showAnswerInput()">✏ Ввести ответ</button>
-      <button id="shuffle-button" onclick="shuffleDeck()">🔄 Перемешать</button>
-      <button id="reset-button" onclick="resetStats()">🔄 Сбросить прогресс</button>
-    </div>
-
-    <div class="difficulty-selector">
-      <select id="levelSelect" onchange="selectLevel()">
-        <option value="all">Все уровни</option>
-        <option value="easy">Лёгкий</option>
-        <option value="medium">Средний</option>
-        <option value="hard">Сложный</option>
-      </select>
-    </div>
-  </div>
-
-  <script src="script.js"></script>
-</body>
-// Initialize game state
-let gameState = {
-  currentCardIndex: 0,
-  score: 0,
-  level: 1,
-  combo: 0,
-  cardsAnswered: 0,
-  dailyTaskProgress: 0,
-  currentDifficulty: 'all',
-  cards: [],
-  originalCards: []
-};
-
-// Card sets by difficulty
-const flashcards = {
-  easy: [
-    { 
-      q: "Что такое инерция?", 
-      a: "Свойство тела сохранять состояние покоя или равномерного прямолинейного движения.",
-      theme: "inertia",
-      bg: "https://images.unsplash.com/photo-1534796636912-3b95b3ab5986?ixlib=rb-1.2.1&auto=format&fit=crop&w=1350&q=80",
-      keywords: ["инерция", "покой", "движение", "состояние", "свойство тела"]
-    },
-    { 
-      q: "Единица измерения силы?", 
-      a: "Ньютон (Н)",
-      theme: "force",
-      bg: "https://images.unsplash.com/photo-1518770660439-4636190af475?ixlib=rb-1.2.1&auto=format&fit=crop&w=1350&q=80",
-      keywords: ["ньютон", "н", "сила", "единица"]
-    },
-    { 
-      q: "Формула силы?", 
-      a: "F = ma (сила = масса × ускорение)",
-      theme: "formula",
-      bg: "https://images.unsplash.com/photo-1505506874110-6a7a69069a08?ixlib=rb-1.2.1&auto=format&fit=crop&w=1350&q=80",
-      keywords: ["f=ma", "сила масса ускорение", "f = ma", "f=m*a", "f = m*a", "формула силы"]
-    },
-    { 
-      q: "Что измеряют в ваттах?", 
-      a: "Мощность",
-      theme: "power",
-      bg: "https://images.unsplash.com/photo-1508514177221-188b1cf16e9d?ixlib=rb-1.2.1&auto=format&fit=crop&w=1350&q=80",
-      keywords: ["мощность", "ватт", "измерение", "единица измерения"]
-    },
-    { 
-      q: "Формула для вычисления скорости?", 
-      a: "v = s/t (скорость = путь/время)",
-      theme: "velocity",
-      bg: "https://images.unsplash.com/photo-1454789415558-bdda08f4eabb?ixlib=rb-1.2.1&auto=format&fit=crop&w=1350&q=80",
-      keywords: ["скорость", "v=s/t", "v = s/t", "путь", "время", "формула скорости"]
-    }
-  ],
-  medium: [
-    { 
-      q: "Что такое импульс тела?", 
-      a: "Векторная физическая величина, равная произведению массы тела на его скорость. p = mv.",
-      theme: "momentum",
-      bg: "https://images.unsplash.com/photo-1519692933481-e162a57d6721?ixlib=rb-1.2.1&auto=format&fit=crop&w=1350&q=80",
-      keywords: ["импульс", "масса", "скорость", "p=mv", "p = mv", "формула импульса"]
-    },
-    { 
-      q: "Сформулируйте третий закон Ньютона.", 
-      a: "Силы, с которыми два тела действуют друг на друга, равны по модулю и противоположны по направлению.",
-      theme: "newton",
-      bg: "https://images.unsplash.com/photo-1531804055935-76f44d7c3621?ixlib=rb-1.2.1&auto=format&fit=crop&w=1350&q=80",
-      keywords: ["третий закон ньютона", "закон", "противодействие", "сила", "противоположны"]
-    },
-    { 
-      q: "Что такое работа в физике?", 
-      a: "Физическая величина, равная скалярному произведению силы на перемещение. A = F·s·cos(α).",
-      theme: "work",
-      bg: "https://images.unsplash.com/photo-1454165205744-3b78555e5572?ixlib=rb-1.2.1&auto=format&fit=crop&w=1350&q=80",
-      keywords: ["работа", "сила", "перемещение", "скалярное произведение", "формула работы"]
-    },
-    { 
-      q: "Формула кинетической энергии?", 
-      a: "Ek = mv²/2 (кинетическая энергия = масса × скорость² / 2)",
-      theme: "energy",
-      bg: "https://images.unsplash.com/photo-1457364887197-9150188c107b?ixlib=rb-1.2.1&auto=format&fit=crop&w=1350&q=80",
-      keywords: ["кинетическая энергия", "формула", "масса", "скорость", "ek=mv²/2", "ek = mv²/2"]
-    },
-    { 
-      q: "Что такое ускорение свободного падения и чему оно равно?", 
-      a: "Ускорение, с которым тело падает на Землю. g ≈ 9.8 м/с².",
-      theme: "gravity",
-      bg: "https://images.unsplash.com/photo-1544511916-0148ccdeb877?ixlib=rb-1.2.1&auto=format&fit=crop&w=1350&q=80",
-      keywords: ["ускорение свободного падения", "g", "9.8", "земля", "гравитация"]
-    }
-  ],
-  hard: [
-    { 
-      q: "Сформулируйте закон сохранения импульса.", 
-      a: "В замкнутой системе векторная сумма импульсов тел остаётся постоянной при любых взаимодействиях тел этой системы между собой.",
-      theme: "conservation",
-      bg: "https://images.unsplash.com/photo-1516339901601-2e1b62dc0c45?ixlib=rb-1.2.1&auto=format&fit=crop&w=1350&q=80",
-      keywords: ["закон сохранения импульса", "замкнутая система", "векторная сумма", "постоянная", "взаимодействие"]
-    },
-    { 
-      q: "Что такое момент силы?", 
-      a: "Векторная физическая величина, равная векторному произведению радиус-вектора, проведённого от оси вращения к точке приложения силы, на вектор силы. M = r × F.",
-      theme: "torque",
-      bg: "https://images.unsplash.com/photo-1507413245164-6160d8298b31?ixlib=rb-1.2.1&auto=format&fit=crop&w=1350&q=80",
-      keywords: ["момент силы", "векторное произведение", "ось вращения", "радиус-вектор", "m = r × f", "рычаг"]
-    },
-    { 
-      q: "Формула потенциальной энергии тела в гравитационном поле Земли?", 
-      a: "Ep = mgh (потенциальная энергия = масса × ускорение свободного падения × высота)",
-      theme: "potential",
-      bg: "https://images.unsplash.com/photo-1509515837298-2c67a3933321?ixlib=rb-1.2.1&auto=format&fit=crop&w=1350&q=80",
-      keywords: ["потенциальная энергия", "формула", "гравитационное поле", "масса", "высота", "ep=mgh", "ep = mgh"]
-    },
-    { 
-      q: "Запишите уравнение Бернулли.", 
-      a: "p + ρgh + ρv²/2 = const (давление + плотность × g × высота + плотность × скорость²/2 = постоянная величина)",
-      theme: "bernoulli",
-      bg: "https://images.unsplash.com/photo-1503058474900-cb76710f9cd1?ixlib=rb-1.2.1&auto=format&fit=crop&w=1350&q=80",
-      keywords: ["уравнение бернулли", "давление", "плотность", "скорость", "постоянная", "гидродинамика"]
-    },
-    { 
-      q: "Что описывает уравнение Шрёдингера?", 
-      a: "Изменение во времени волновой функции квантовой системы. Является основным уравнением квантовой механики.",
-      theme: "quantum",
-      bg: "https://images.unsplash.com/photo-1561154464-82e9adf32764?ixlib=rb-1.2.1&auto=format&fit=crop&w=1350&q=80",
-      keywords: ["уравнение шрёдингера", "квантовая механика", "волновая функция", "квантовая система", "время"]
-    }
-  ]
-};
-
-// DOM elements
-const cardElement = document.getElementById('card');
-const frontElement = document.getElementById('front');
-const backElement = document.getElementById('back');
-const scoreElement = document.getElementById('score');
-const levelElement = document.getElementById('level');
-const comboElement = document.getElementById('combo');
-const counterElement = document.getElementById('counter');
-const progressBarElement = document.getElementById('progress-bar');
-const answerSectionElement = document.getElementById('answer-section');
-const answerInputElement = document.getElementById('answer-input');
-const feedbackElement = document.getElementById('feedback');
-const taskCounterElement = document.getElementById('task-counter');
-const taskProgressBarElement = document.getElementById('task-progress-bar');
-const levelSelectElement = document.getElementById('levelSelect');
-
-// Initialize the application
-function initApp() {
-  // Initialize particles.js
-  particlesJS('particles-js', {
-    "particles": {
-      "number": { "value": 80, "density": { "enable": true, "value_area": 800 } },
-      "color": { "value": "#00F5FF" },
-      "shape": { "type": "circle" },
-      "opacity": { "value": 0.5, "random": true },
-      "size": { "value": 3, "random": true },
-      "line_linked": { "enable": true, "distance": 150, "color": "#00F5FF", "opacity": 0.2, "width": 1 },
-      "move": { "enable": true, "speed": 2, "direction": "none", "random": true, "straight": false, "out_mode": "out" }
-    },
-    "interactivity": {
-      "detect_on": "canvas",
-      "events": {
-        "onhover": { "enable": true, "mode": "repulse" },
-        "onclick": { "enable": true, "mode": "push" }
-      }
-    }
-  });
-
-  // Load game state from localStorage if available
-  loadGameState();
-
-  // Setup event listeners
-  setupEventListeners();
-
-  // Initialize cards based on difficulty
-  initCards();
-
-  // Render the first card
-  renderCurrentCard();
-
-  // Update stats display
-  updateStatsDisplay();
-  
-  // Update task progress display
-  updateTaskProgress();
-  
-  // Update counter display
-  updateCounter();
-}
-
-// Save game state to localStorage
-function saveGameState() {
-  localStorage.setItem('cosmicPhysicsFlash', JSON.stringify(gameState));
-}
-
-// Load game state from localStorage
-function loadGameState() {
-  const savedState = localStorage.getItem('cosmicPhysicsFlash');
-  if (savedState) {
-    gameState = JSON.parse(savedState);
-  }
-}
-
-// Setup event listeners
-function setupEventListeners() {
-  // Card flip on click
-  cardElement.addEventListener('click', flipCard);
-
-  // Check answer button
-  document.getElementById('check-answer').addEventListener('click', checkAnswer);
-
-  // Answer input enter key
-  answerInputElement.addEventListener('keyup', function(event) {
-    if (event.key === "Enter") {
-      checkAnswer();
-    }
-  });
-}
-
-// Initialize cards based on difficulty
-function initCards() {
-  if (gameState.cards.length === 0) {
-    // First time setup
-    selectLevel();
-  }
-}
-
-// Select difficulty level
-function selectLevel() {
-  const selectedDifficulty = levelSelectElement.value;
-  gameState.currentDifficulty = selectedDifficulty;
-  
-  if (selectedDifficulty === 'all') {
-    // Combine all difficulty levels
-    gameState.cards = [
-      ...flashcards.easy,
-      ...flashcards.medium,
-      ...flashcards.hard
-    ];
-  } else {
-    // Use specific difficulty level
-    gameState.cards = [...flashcards[selectedDifficulty]];
-  }
-  
-  // Save original order for reset
-  gameState.originalCards = [...gameState.cards];
-  
-  // Reset current index to start
-  gameState.currentCardIndex = 0;
-  
-  // Update counter
-  updateCounter();
-  
-  // Render current card
-  renderCurrentCard();
-  
-  // Save game state
-  saveGameState();
-}
-
-// Shuffle the deck of cards
-function shuffleDeck() {
-  // Fisher-Yates shuffle algorithm
-  for (let i = gameState.cards.length - 1; i > 0; i--) {
-    const j = Math.floor(Math.random() * (i + 1));
-    [gameState.cards[i], gameState.cards[j]] = [gameState.cards[j], gameState.cards[i]];
-  }
-  
-  // Reset current index to start
-  gameState.currentCardIndex = 0;
-  
-  // Update counter
-  updateCounter();
-  
-  // Render current card
-  renderCurrentCard();
-  
-  // Save game state
-  saveGameState();
-  
-  // Visual feedback
-  showMessage("Колода перемешана!", "praise");
-}
-
-// Reset game stats
-function resetStats() {
-  if (confirm("Вы уверены, что хотите сбросить весь прогресс?")) {
-    gameState.score = 0;
-    gameState.level = 1;
-    gameState.combo = 0;
-    gameState.cardsAnswered = 0;
-    gameState.dailyTaskProgress = 0;
-    gameState.currentCardIndex = 0;
-    
-    // Restore original card order
-    gameState.cards = [...gameState.originalCards];
-    
-    // Update UI
-    updateStatsDisplay();
-    updateCounter();
-    renderCurrentCard();
-    updateTaskProgress();
-    
-    // Save game state
-    saveGameState();
-    
-    // Visual feedback
-    showMessage("Прогресс сброшен!", "wrong");
-  }
-}
-
-// Flip the card
-function flipCard() {
-  cardElement.classList.toggle('flipped');
-}
-
-// Go to previous card
-function prevCard() {
-  if (gameState.currentCardIndex > 0) {
-    gameState.currentCardIndex--;
-    updateCounter();
-    renderCurrentCard();
-    
-    // Reset card to front side if flipped
-    if (cardElement.classList.contains('flipped')) {
-      cardElement.classList.remove('flipped');
-    }
-    
-    // Hide answer input if visible
-    hideAnswerInput();
-    
-    // Save game state
-    saveGameState();
-  }
-}
-
-// Go to next card
-function nextCard() {
-  if (gameState.currentCardIndex < gameState.cards.length - 1) {
-    gameState.currentCardIndex++;
-  } else {
-    gameState.currentCardIndex = 0; // Loop back to the first card
-  }
-  
-  updateCounter();
-  renderCurrentCard();
-  
-  // Reset card to front side if flipped
-  if (cardElement.classList.contains('flipped')) {
-    cardElement.classList.remove('flipped');
-  }
-  
-  // Hide answer input if visible
-  hideAnswerInput();
-  
-  // Save game state
-  saveGameState();
-}
-
-// Render the current card
-function renderCurrentCard() {
-  const currentCard = gameState.cards[gameState.currentCardIndex];
-  
-  if (currentCard) {
-    // Update card content
-    frontElement.textContent = currentCard.q;
-    backElement.textContent = currentCard.a;
-    
-    // Change background image based on card theme
-    if (currentCard.bg) {
-      document.body.style.backgroundImage = linear-gradient(rgba(11, 13, 23, 0.8), rgba(11, 13, 23, 0.8)), url('${currentCard.bg}');
-    }
-  } else {
-    // Fallback if no card exists
-    frontElement.textContent = "Карточки не найдены";
-    backElement.textContent = "Пожалуйста, выберите уровень сложности";
-  }
-}
-
-// Show answer input section
-function showAnswerInput() {
-  answerSectionElement.style.display = 'block';
-  answerInputElement.focus();
-  feedbackElement.textContent = '';
-  feedbackElement.className = 'feedback';
-}
-
-// Hide answer input section
-function hideAnswerInput() {
-  answerSectionElement.style.display = 'none';
-  answerInputElement.value = '';
-  feedbackElement.textContent = '';
-}
-
-// Check user's answer
-function checkAnswer() {
-  const userAnswer = answerInputElement.value.trim().toLowerCase();
-  const currentCard = gameState.cards[gameState.currentCardIndex];
-  
-  if (!userAnswer) {
-    showMessage("Пожалуйста, введите ответ", "wrong");
-    return;
-  }
-  
-  let isCorrect = false;
-  
-  // Check against keywords for more flexible matching
-  if (currentCard.keywords && currentCard.keywords.length > 0) {
-    isCorrect = currentCard.keywords.some(keyword => 
-      userAnswer.includes(keyword.toLowerCase())
-    );
-  } else {
-    // Fallback to simple check if no keywords
-    const correctAnswer = currentCard.a.toLowerCase();
-    isCorrect = userAnswer.includes(correctAnswer) || correctAnswer.includes(userAnswer);
-  }
-  
-  if (isCorrect) {
-    handleCorrectAnswer();
-  } else {
-    handleWrongAnswer();
-  }
-  
-  // Save game state
-  saveGameState();
-}
-
-// Handle correct answer
-function handleCorrectAnswer() {
-  // Increment combo
-  gameState.combo++;
-  
-  // Calculate points based on combo
-  const points = 10 * gameState.combo;
-  
-  // Add points to score
-  gameState.score += points;
-  
-  // Increment cards answered
-  gameState.cardsAnswered++;
-  
-  // Update daily task progress
-  updateDailyTask(true);
-  
-  // Check for level up
-  checkLevelUp();
-  
-  // Update display
-  updateStatsDisplay();
-  
-  // Show feedback
-  showMessage(Правильно! +${points} очков, "correct");
-  
-  // Show celebration effect for good combos
-  if (gameState.combo >= 3) {
-    createConfetti();
-  }
-  
-  // Automatically go to next card after delay
-  setTimeout(() => {
-    nextCard();
-    hideAnswerInput();
-  }, 2000);
-}
-
-// Handle wrong answer
-function handleWrongAnswer() {
-  // Reset combo
-  gameState.combo = 0;
-  
-  // Update display
-  updateStatsDisplay();
-  
-  // Show feedback
-  showMessage("Неверно. Попробуйте ещё раз или проверьте ответ.", "wrong");
-  
-  // Flip card to show answer after a few attempts
-  if (!cardElement.classList.contains('flipped')) {
-    setTimeout(() => {
-      cardElement.classList.add('flipped');
-    }, 1500);
-  }
-}
-
-// Update daily task progress
-function updateDailyTask(isCorrect) {
-  if (isCorrect && gameState.dailyTaskProgress < 5) {
-    gameState.dailyTaskProgress++;
-    
-    // If task completed
-    if (gameState.dailyTaskProgress === 5) {
-      // Reward with bonus points
-      gameState.score += 50;
-      showMessage("Ежедневная задача выполнена! +50 очков", "praise");
-    }
-    
-    updateTaskProgress();
-  }
-}
-
-// Update task progress display
-function updateTaskProgress() {
-  taskCounterElement.textContent = ${gameState.dailyTaskProgress}/5;
-  const progressPercent = (gameState.dailyTaskProgress / 5) * 100;
-  taskProgressBarElement.style.width = ${progressPercent}%;
-}
-
-// Check if player should level up
-function checkLevelUp() {
-  const newLevel = Math.floor(gameState.score / 100) + 1;
-  
-  if (newLevel > gameState.level) {
-    gameState.level = newLevel;
-    showLevelUpMessage();
-  }
-  
-  // Update progress bar
-  const progressToNextLevel = (gameState.score % 100) / 100;
-  progressBarElement.style.width = ${progressToNextLevel * 100}%;
-}
-
-// Display level up message
-function showLevelUpMessage() {
-  const levelUpElement = document.createElement('div');
-  levelUpElement.className = 'level-up';
-  levelUpElement.textContent = УРОВЕНЬ ${gameState.level}!;
-  document.body.appendChild(levelUpElement);
-  
-  // Create more intense confetti
-  createConfetti(100);
-  
-  // Remove element after animation
-  setTimeout(() => {
-    document.body.removeChild(levelUpElement);
-  }, 2000);
-}
-
-// Show feedback message
-function showMessage(message, type) {
-  feedbackElement.textContent = message;
-  feedbackElement.className = feedback ${type};
-}
-
-// Create confetti effect
-function createConfetti(count = 50) {
-  for (let i = 0; i < count; i++) {
-    const confetti = document.createElement('div');
-    confetti.className = 'confetti';
-    
-    // Random position, color and size
-    confetti.style.left = ${Math.random() * 100}vw;
-    confetti.style.backgroundColor = getRandomColor();
-    confetti.style.width = ${5 + Math.random() * 10}px;
-    confetti.style.height = ${5 + Math.random() * 10}px;
-    
-    // Add to DOM
-    document.body.appendChild(confetti);
-    
-    // Remove after animation
-    setTimeout(() => {
-      document.body.removeChild(confetti);
-    }, 3000);
-  }
-}
-
-// Generate random bright color
-function getRandomColor() {
-  const colors = [
-    '#00F5FF', // Neon blue
-    '#FF10F0', // Neon pink
-    '#FFE81F', // Star yellow
-    '#00FF87', // Neon green
-    '#FF6B00'  // Neon orange
-  ];
-  return colors[Math.floor(Math.random() * colors.length)];
-}
-
-// Update the card counter
-function updateCounter() {
-  counterElement.textContent = ${gameState.currentCardIndex + 1}/${gameState.cards.length};
-}
-
-// Update all stats display elements
-function updateStatsDisplay() {
-  scoreElement.textContent = gameState.score;
-  levelElement.textContent = gameState.level;
-  comboElement.textContent = ${gameState.combo}x;
-  
-  // Update progress bar for level
-  const progressToNextLevel = (gameState.score % 100) / 100;
-  progressBarElement.style.width = ${progressToNextLevel * 100}%;
-}
-
-// Initialize the app when the DOM is loaded
-document.addEventListener('DOMContentLoaded', initApp);
-:root {
-  --space-dark: #0B0D17;
-  --neon-blue: #00F5FF;
-  --neon-pink: #FF10F0;
-  --star-yellow: #FFE81F;
-  --card-bg: rgba(13, 17, 31, 0.8);
-  --text-light: #E0E0E0;
-}
-
-body {
+  <style>
+    :root {
+      --space-dark: #0B0D17;
+      --neon-blue: #00F5FF;
+      --neon-pink: #FF10F0;
+      --star-yellow: #FFE81F;
+      --card-bg: rgba(13, 17, 31, 0.8);
+      --text-light: #E0E0E0;
+    }body {
   margin: 0;
   padding: 0;
   font-family: 'Roboto', sans-serif;
@@ -1045,4 +370,608 @@ select {
     font-size: 0.9rem;
   }
 }
+
+  </style>
+</head>
+<body>
+  <div id="particles-js"></div>  <div class="container">
+    <h1>🚀 COSMIC PHYSICS FLASH</h1>
+    <p class="subtitle">Изучай физику как космический исследователь!</p>
+    
+    <div id="daily-tasks">
+      <div class="daily-task">
+        <div>Ежедневная задача: ответьте правильно на 5 карточек</div>
+        <div class="task-progress">
+          <span id="task-counter">0/5</span>
+          <div class="task-bar">
+            <div class="task-progress-bar" id="task-progress-bar" style="width: 0%"></div>
+          </div>
+          <span class="task-reward">+50 очков</span>
+        </div>
+      </div>
+    </div>
+    
+    <div id="game-stats">
+      <div class="stat">
+        <span>Уровень</span>
+        <span class="stat-value" id="level">1</span>
+      </div>
+      <div class="stat">
+        <span>Очки</span>
+        <span class="stat-value" id="score">0</span>
+      </div>
+      <div class="stat">
+        <span>Комбо</span>
+        <span class="stat-value" id="combo">0x</span>
+      </div>
+      <div class="stat">
+        <span>Карточка</span>
+        <span class="stat-value" id="counter">1/25</span>
+      </div>
+    </div>
+
+    <div id="card-container">
+      <div id="card">
+        <div class="side front" id="front">Загрузка...</div>
+        <div class="side back" id="back">Загрузка...</div>
+      </div>
+    </div>
+
+    <div id="answer-section" style="display: none;">
+      <input type="text" id="answer-input" placeholder="Введите ваш ответ...">
+      <div class="controls">
+        <button id="check-answer">Проверить ответ</button>
+      </div>
+      <div class="feedback" id="feedback"></div>
+    </div>
+
+    <div class="progress-container">
+      <div id="progress-bar"></div>
+    </div>
+
+    <div class="controls">
+      <button onclick="prevCard()">◄ Назад</button>
+      <button onclick="nextCard()">Вперёд ►</button>
+      <button onclick="showAnswerInput()">✏ Ввести ответ</button>
+      <button onclick="shuffleDeck()">🔄 Перемешать</button>
+      <button onclick="resetStats()">🔄 Сбросить прогресс</button>
+    </div>
+
+    <div class="difficulty-selector">
+      <select id="levelSelect" onchange="selectLevel()">
+        <option value="all">Все уровни</option>
+        <option value="easy">Лёгкий</option>
+        <option value="medium">Средний</option>
+        <option value="hard">Сложный</option>
+      </select>
+    </div>
+
+  </div>
+
+  <script>
+    // Конфигурация частиц
+    const particlesConfig = {
+      "particles": {
+        "number": { "value": 80, "density": { "enable": true, "value_area": 800 } },
+        "color": { "value": "#00F5FF" },
+        "shape": { "type": "circle" },
+        "opacity": { "value": 0.5, "random": true },
+        "size": { "value": 3, "random": true },
+        "line_linked": { "enable": true, "distance": 150, "color": "#00F5FF", "opacity": 0.2, "width": 1 },
+        "move": { "enable": true, "speed": 2, "direction": "none", "random": true, "straight": false, "out_mode": "out" }
+      },
+      "interactivity": {
+        "detect_on": "canvas",
+        "events": {
+          "onhover": { "enable": true, "mode": "repulse" },
+          "onclick": { "enable": true, "mode": "push" }
+        }
+      }
+    };
+
+    // Карточки с темами и фонами
+    const flashcards = {
+      easy: [
+        { 
+          q: "Что такое инерция?", 
+          a: "Свойство тела сохранять состояние покоя или равномерного прямолинейного движения.",
+          theme: "inertia",
+          bg: "https://images.unsplash.com/photo-1534796636912-3b95b3ab5986?ixlib=rb-1.2.1&auto=format&fit=crop&w=1350&q=80",
+          keywords: ["инерция", "покой", "движение", "состояние", "свойство тела"]
+        },
+        { 
+          q: "Единица измерения силы?", 
+          a: "Ньютон (Н)",
+          theme: "force",
+          bg: "https://images.unsplash.com/photo-1518770660439-4636190af475?ixlib=rb-1.2.1&auto=format&fit=crop&w=1350&q=80",
+          keywords: ["ньютон", "н", "сила", "единица"]
+        },
+        { 
+          q: "Формула силы?", 
+          a: "F = ma (сила = масса × ускорение)",
+          theme: "formula",
+          bg: "https://images.unsplash.com/photo-1505506874110-6a7a69069a08?ixlib=rb-1.2.1&auto=format&fit=crop&w=1350&q=80",
+          keywords: ["f=ma", "сила масса ускорение", "f = ma", "f=m*a", "f = m*a", "формула силы"]
+        },
+        { 
+          q: "Что измеряют в ваттах?", 
+          a: "Мощность",
+          theme: "power",
+          bg: "https://images.unsplash.com/photo-1508514177221-188b1cf16e9d?ixlib=rb-1.2.1&auto=format&fit=crop&w=1350&q=80",
+          keywords: ["мощность", "ватт", "измерение"]
+        },
+        { 
+          q: "Единица электрического сопротивления?", 
+          a: "Ом (Ω)",
+          theme: "electricity",
+          bg: "https://images.unsplash.com/photo-1518544864410-91e8baf4b963?ixlib=rb-1.2.1&auto=format&fit=crop&w=1350&q=80",
+          keywords: ["ом", "ω", "сопротивление", "электрическое"]
+        }
+      ],
+      medium: [
+        { 
+          q: "Закон Ома?", 
+          a: "I = U/R (сила тока = напряжение / сопротивление)",
+          theme: "electricity",
+          bg: "https://images.unsplash.com/photo-1508514177221-188b1cf16e9d?ixlib=rb-1.2.1&auto=format&fit=crop&w=1350&q=80",
+          keywords: ["i=u/r", "закон ома", "сила тока напряжение сопротивление", "i = u/r", "i=u÷r", "i = u ÷ r"]
+        },
+        { 
+          q: "Что такое импульс тела?", 
+          a: "Произведение массы тела на его скорость (p = mv)",
+          theme: "momentum",
+          bg: "https://images.unsplash.com/photo-1532094349884-543bc11b234d?ixlib=rb-1.2.1&auto=format&fit=crop&w=1350&q=80",
+          keywords: ["импульс", "p=mv", "масса скорость", "p = mv", "p=m*v", "p = m*v"]
+        }
+      ],
+      hard: [
+        { 
+          q: "Закон Бойля-Мариотта?", 
+          a: "PV = const (для газа постоянной массы при постоянной температуре)",
+          theme: "gas",
+          bg: "https://images.unsplash.com/photo-1513297887119-d46091b24bfa?ixlib=rb-1.2.1&auto=format&fit=crop&w=1350&q=80",
+          keywords: ["pv=const", "бойль мариотт", "газ температура", "p*v=const", "pv = const", "p×v=const"]
+        },
+        { 
+          q: "Уравнение Шрёдингера описывает?", 
+          a: "Изменение квантового состояния физической системы со временем",
+          theme: "quantum",
+          bg: "https://images.unsplash.com/photo-1517365884913-3c33884b06fa?ixlib=rb-1.2.1&auto=format&fit=crop&w=1350&q=80",
+          keywords: ["шрёдингер", "квантовое состояние", "физическая система", "изменение", "уравнение"]
+        }
+      ]
+    };
+
+    // Игровые переменные
+    let current = 0;
+    let flipped = false;
+    let level = 'all';
+    let currentDeck = [];
+    let score = 0;
+    let userLevel = 1;
+    let xp = 0;
+    let combo = 0;
+    let maxCombo = 0;
+    let cardStats = {};
+    let hasAnswered = false;
+    let dailyTaskCompleted = false;
+    let dailyTaskProgress = 0;
+    const DAILY_TASK_TARGET = 5;
+    const DAILY_TASK_REWARD = 50;
+    
+    // DOM элементы
+    const card = document.getElementById('card');
+    const front = document.getElementById('front');
+    const back = document.getElementById('back');
+    const counterDisplay = document.getElementById('counter');
+    const scoreDisplay = document.getElementById('score');
+    const levelDisplay = document.getElementById('level');
+    const comboDisplay = document.getElementById('combo');
+    const progressBar = document.getElementById('progress-bar');
+    const answerSection = document.getElementById('answer-section');
+    const answerInput = document.getElementById('answer-input');
+    const checkAnswerBtn = document.getElementById('check-answer');
+    const feedback = document.getElementById('feedback');
+    const taskCounter = document.getElementById('task-counter');
+    const taskProgressBar = document.getElementById('task-progress-bar');
+
+    // Похвальные фразы
+    const praisePhrases = [
+      "Ты гений физики! 🚀",
+      "Великолепно! Ты просто звезда! ⭐",
+      "Потрясающе! Ты настоящий учёный! 🔬",
+      "Браво! Ты справился на отлично! 💯",
+      "Фантастически! Ты молодец! 👏",
+      "Умница! Так держать! 🌟",
+      "Превосходно! Ты физик от бога! 🧠",
+      "Великолепный ответ! Ты на верном пути! 🏆",
+      "Идеально! Ты делаешь успехи! 🎯",
+      "Блестяще! Ты настоящий Эйнштейн! 🌌"
+    ];
+
+    // Инициализация
+    function init() {
+      // Загружаем сохраненный прогресс
+      loadProgress();
+      selectLevel();
+      updateStats();
+      updateDailyTask();
+      
+      // Обработчик клика по карточке
+      card.addEventListener('click', flipCard);
+      
+      // Обработчик проверки ответа
+      checkAnswerBtn.addEventListener('click', checkAnswer);
+      answerInput.addEventListener('keypress', function(e) {
+        if (e.key === 'Enter') {
+          checkAnswer();
+        }
+      });
+      
+      // Запуск анимации частиц
+      particlesJS("particles-js", particlesConfig);
+    }
+    
+    // Сохраняем прогресс в localStorage
+    function saveProgress() {
+      const progress = {
+        score,
+        userLevel,
+        xp,
+        maxCombo,
+        cardStats,
+        dailyTaskCompleted,
+        dailyTaskProgress,
+        lastPlayDate: new Date().toDateString()
+      };
+      localStorage.setItem('cosmicPhysicsProgress', JSON.stringify(progress));
+    }
+    
+    // Загружаем прогресс из localStorage
+    function loadProgress() {
+      const savedProgress = localStorage.getItem('cosmicPhysicsProgress');
+      if (savedProgress) {
+        const progress = JSON.parse(savedProgress);
+        score = progress.score || 0;
+        userLevel = progress.userLevel || 1;
+        xp = progress.xp || 0;
+        maxCombo = progress.maxCombo || 0;
+        cardStats = progress.cardStats || {};
+        
+        // Проверяем, был ли сегодняшний день
+        const today = new Date().toDateString();
+        if (progress.lastPlayDate === today) {
+          dailyTaskCompleted = progress.dailyTaskCompleted || false;
+          dailyTaskProgress = progress.dailyTaskProgress || 0;
+        } else {
+          // Новый день - сбрасываем прогресс ежедневной задачи
+          dailyTaskCompleted = false;
+          dailyTaskProgress = 0;
+        }
+      }
+    }
+    
+    // Сброс статистики
+    function resetStats() {
+      if (confirm("Вы уверены, что хотите сбросить весь прогресс?")) {
+        score = 0;
+        userLevel = 1;
+        xp = 0;
+        combo = 0;
+        maxCombo = 0;
+        cardStats = {};
+        dailyTaskCompleted = false;
+        dailyTaskProgress = 0;
+        localStorage.removeItem('cosmicPhysicsProgress');
+        updateStats();
+        updateDailyTask();
+        createConfetti();
+      }
+    }
+    
+    // Обновление ежедневной задачи
+    function updateDailyTask() {
+      const progress = (dailyTaskProgress / DAILY_TASK_TARGET) * 100;
+      taskCounter.textContent = ${dailyTaskProgress}/${DAILY_TASK_TARGET};
+      taskProgressBar.style.width = ${progress}%;
+      
+      if (dailyTaskCompleted) {
+        taskCounter.textContent = "Задача выполнена!";
+        taskProgressBar.style.width = "100%";
+      }
+    }
+    
+    // Выбор уровня сложности
+    function selectLevel() {
+      level = document.getElementById('levelSelect').value;
+      current = 0;
+      hasAnswered = false;
+      
+      if (level === 'all') {
+        currentDeck = [...flashcards.easy, ...flashcards.medium, ...flashcards.hard];
+      } else {
+        currentDeck = [...flashcards[level]];
+      }
+      
+      // Инициализация статистики по карточкам
+      currentDeck.forEach((card, index) => {
+        if (!cardStats[index]) {
+          cardStats[index] = {
+            views: 0,
+            correct: 0,
+            lastViewed: null
+          };
+        }
+      });
+      
+      shuffleDeck();
+    }
+    
+    // Перемешивание колоды
+    function shuffleDeck() {
+      shuffleArray(currentDeck);
+      current = 0;
+      updateCard();
+    }
+    
+    // Обновление карточки
+    function updateCard() {
+      hasAnswered = false;
+      answerSection.style.display = 'none';
+      feedback.textContent = '';
+      feedback.className = "feedback";
+      
+      const item = currentDeck[current];
+      front.innerHTML = renderContent(item.q);
+      back.innerHTML = renderContent(item.a);
+      
+      counterDisplay.textContent = ${current + 1}/${currentDeck.length};
+      
+      // Обновляем статистику просмотра
+      cardStats[current].views++;
+      cardStats[current].lastViewed = new Date();
+      
+      // Меняем фон в зависимости от темы
+      changeBackground(item.bg);
+      
+      // Обновляем прогресс
+      updateProgress();
+      
+      // Сохраняем прогресс
+      saveProgress();
+    }
+    
+    // Изменение фона
+    function changeBackground(imageUrl) {
+      document.body.style.backgroundImage = linear-gradient(rgba(11, 13, 23, 0.8), rgba(11, 13, 23, 0.8)), url(${imageUrl});
+    }
+    
+    // Показать поле для ввода ответа
+    function showAnswerInput() {
+      if (hasAnswered) return;
+      answerSection.style.display = 'block';
+      answerInput.focus();
+      feedback.textContent = '';
+    }
+    
+    // Проверка ответа
+    function checkAnswer() {
+      if (hasAnswered) return;
+      
+      const userAnswer = normalizeString(answerInput.value.trim());
+      const correctAnswer = normalizeString(currentDeck[current].a);
+      const keywords = currentDeck[current].keywords || [];
+      
+      let isCorrect = false;
+      
+      // Проверяем по ключевым словам
+      for (const keyword of keywords) {
+        const normalizedKeyword = normalizeString(keyword);
+        if (userAnswer.includes(normalizedKeyword)) {
+          isCorrect = true;
+          break;
+        }
+      }
+      
+      // Если нет ключевых слов или не нашли совпадение, проверяем полный ответ
+      if (!isCorrect && keywords.length === 0) {
+        isCorrect = userAnswer === correctAnswer;
+      }
+      
+      if (isCorrect) {
+        const praise = praisePhrases[Math.floor(Math.random() * praisePhrases.length)];
+        feedback.innerHTML = <span class="correct">✅ Правильно!</span> <span class="praise">${praise}</span>;
+        answerInput.value = '';
+        answerSection.style.display = 'none';
+        markCorrect();
+      } else {
+        feedback.innerHTML = <span class="wrong">❌ Неверно. Вот правильный ответ:</span><br>${currentDeck[current].a};
+        combo = 0;
+        updateStats();
+        hasAnswered = true;
+        
+        // Через 3 секунды переходим к следующей карточке
+        setTimeout(() => {
+          nextCard();
+        }, 3000);
+      }
+    }
+    
+    // Нормализация строки для сравнения
+    function normalizeString(str) {
+      return str.toLowerCase()
+        .replace(/×/g, '*')
+        .replace(/÷/g, '/')
+        .replace(/\s+/g, ' ')
+        .replace(/[.,\/#!$%\^&\*;:{}=\-_`~()]/g, '')
+        .trim();
+    }
+    
+    // Рендер контента с поддержкой KaTeX
+    function renderContent(text) {
+      // Простая проверка на формулы (можно улучшить)
+      if (text.includes('=') || text.includes('\\') || text.includes('_') || text.includes('^')) {
+        try {
+          return katex.renderToString(text, { throwOnError: false });
+        } catch (e) {
+          return text;
+        }
+      }
+      return text;
+    }
+    
+    // Переворот карточки
+    function flipCard() {
+      if (hasAnswered) return;
+      
+      flipped = !flipped;
+      
+      if (flipped) {
+        card.classList.add('flipped');
+      } else {
+        card.classList.remove('flipped');
+      }
+    }
+    
+    // Следующая карточка
+    function nextCard() {
+      current = (current + 1) % currentDeck.length;
+      updateCard();
+      animateCard('right');
+    }
+    
+    // Предыдущая карточка
+    function prevCard() {
+      current = (current - 1 + currentDeck.length) % currentDeck.length;
+      updateCard();
+      animateCard('left');
+    }
+    
+    // Анимация карточки
+    function animateCard(direction) {
+      card.style.transform = direction === 'right' ? 'translateX(20px)' : 'translateX(-20px)';
+      card.style.opacity = '0';
+      
+      setTimeout(() => {
+        card.style.transform = 'translateX(0)';
+        card.style.opacity = '1';
+      }, 200);
+    }
+    
+    // Отметить как правильный ответ
+    function markCorrect() {
+      cardStats[current].correct++;
+      combo++;
+      if (combo > maxCombo) maxCombo = combo;
+      
+      // Начисление очков в зависимости от сложности
+      let points = 10;
+      if (level === 'medium') points = 20;
+      if (level === 'hard') points = 30;
+      
+      // Бонус за комбо
+      points += Math.floor(combo / 3) * 5;
+      
+      // Обновляем прогресс ежедневной задачи
+      if (!dailyTaskCompleted) {
+        dailyTaskProgress++;
+        if (dailyTaskProgress >= DAILY_TASK_TARGET) {
+          dailyTaskCompleted = true;
+          points += DAILY_TASK_REWARD;
+          feedback.innerHTML += <br><span class="praise">Вы выполнили ежедневную задачу! +${DAILY_TASK_REWARD} очков!</span>;
+          createConfetti();
+        }
+        updateDailyTask();
+      }
+      
+      score += points;
+      xp += points;
+      
+      // Проверка уровня
+      checkLevelUp();
+      
+      // Анимация
+      createConfetti();
+      
+      // Переход к следующей карточке
+      setTimeout(() => {
+        nextCard();
+      }, 1500);
+      
+      updateStats();
+      hasAnswered = true;
+      saveProgress();
+    }
+    
+    // Проверка повышения уровня
+    function checkLevelUp() {
+      const xpNeeded = userLevel * 100;
+      
+      if (xp >= xpNeeded) {
+        xp -= xpNeeded;
+        userLevel++;
+        
+        // Анимация повышения уровня
+        const levelUp = document.createElement('div');
+        levelUp.className = 'level-up';
+        levelUp.textContent = LEVEL UP! ${userLevel};
+        document.body.appendChild(levelUp);
+        
+        setTimeout(() => {
+          levelUp.remove();
+        }, 2000);
+      }
+    }
+    
+    // Обновление статистики
+    function updateStats() {
+      scoreDisplay.textContent = score;
+      levelDisplay.textContent = userLevel;
+      comboDisplay.textContent = combo > 0 ? ${combo}x : '0x';
+      comboDisplay.style.color = combo > 3 ? '#FF10F0' : '#00F5FF';
+      comboDisplay.style.textShadow = combo > 3 ? '0 0 10px #FF10F0' : 'none';
+      
+      // Обновляем прогресс
+      updateProgress();
+    }
+    
+    // Обновление прогресс-бара
+    function updateProgress() {
+      const progress = ((current + 1) / currentDeck.length) * 100;
+      progressBar.style.width = ${progress}%;
+    }
+    
+    // Создание конфетти
+    function createConfetti() {
+      for (let i = 0; i < 50; i++) {
+        const confetti = document.createElement('div');
+        confetti.className = 'confetti';
+        confetti.style.left = ${Math.random() * 100}%;
+        confetti.style.backgroundColor = getRandomColor();
+        confetti.style.animationDuration = ${2 + Math.random() * 3}s;
+        document.body.appendChild(confetti);
+        
+        setTimeout(() => {
+          confetti.remove();
+        }, 3000);
+      }
+    }
+    
+    function getRandomColor() {
+      const colors = ['#00F5FF', '#FF10F0', '#FFE81F', '#FF6B00', '#00FF87'];
+      return colors[Math.floor(Math.random() * colors.length)];
+    }
+    
+    // Перемешивание массива
+    function shuffleArray(array) {
+      for (let i = array.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [array[i], array[j]] = [array[j], array[i]];
+      }
+    }
+    
+    // Запуск приложения
+    document.addEventListener('DOMContentLoaded', init);
+  </script>
+</body>
 </html>
