@@ -1,0 +1,1048 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>🚀 Cosmic Physics Flash</title>
+  <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&family=Roboto:wght@300;400;700&display=swap" rel="stylesheet">
+  <script src="https://cdn.jsdelivr.net/npm/particles.js@2.0.0/particles.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/katex@0.16.0/dist/katex.min.js"></script>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.0/dist/katex.min.css">
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <div id="particles-js"></div>
+  
+  <div class="container">
+    <h1>🚀 COSMIC PHYSICS FLASH</h1>
+    <p class="subtitle">Изучай физику как космический исследователь!</p>
+    
+    <div id="daily-tasks">
+      <div class="daily-task">
+        <div>Ежедневная задача: ответьте правильно на 5 карточек</div>
+        <div class="task-progress">
+          <span id="task-counter">0/5</span>
+          <div class="task-bar">
+            <div class="task-progress-bar" id="task-progress-bar" style="width: 0%"></div>
+          </div>
+          <span class="task-reward">+50 очков</span>
+        </div>
+      </div>
+    </div>
+    
+    <div id="game-stats">
+      <div class="stat">
+        <span>Уровень</span>
+        <span class="stat-value" id="level">1</span>
+      </div>
+      <div class="stat">
+        <span>Очки</span>
+        <span class="stat-value" id="score">0</span>
+      </div>
+      <div class="stat">
+        <span>Комбо</span>
+        <span class="stat-value" id="combo">0x</span>
+      </div>
+      <div class="stat">
+        <span>Карточка</span>
+        <span class="stat-value" id="counter">1/25</span>
+      </div>
+    </div>
+
+    <div id="card-container">
+      <div id="card">
+        <div class="side front" id="front">Загрузка...</div>
+        <div class="side back" id="back">Загрузка...</div>
+      </div>
+    </div>
+
+    <div id="answer-section" style="display: none;">
+      <input type="text" id="answer-input" placeholder="Введите ваш ответ...">
+      <div class="controls">
+        <button id="check-answer">Проверить ответ</button>
+      </div>
+      <div class="feedback" id="feedback"></div>
+    </div>
+
+    <div class="progress-container">
+      <div id="progress-bar"></div>
+    </div>
+
+    <div class="controls">
+      <button id="prev-button" onclick="prevCard()">◄ Назад</button>
+      <button id="next-button" onclick="nextCard()">Вперёд ►</button>
+      <button id="answer-button" onclick="showAnswerInput()">✏ Ввести ответ</button>
+      <button id="shuffle-button" onclick="shuffleDeck()">🔄 Перемешать</button>
+      <button id="reset-button" onclick="resetStats()">🔄 Сбросить прогресс</button>
+    </div>
+
+    <div class="difficulty-selector">
+      <select id="levelSelect" onchange="selectLevel()">
+        <option value="all">Все уровни</option>
+        <option value="easy">Лёгкий</option>
+        <option value="medium">Средний</option>
+        <option value="hard">Сложный</option>
+      </select>
+    </div>
+  </div>
+
+  <script src="script.js"></script>
+</body>
+// Initialize game state
+let gameState = {
+  currentCardIndex: 0,
+  score: 0,
+  level: 1,
+  combo: 0,
+  cardsAnswered: 0,
+  dailyTaskProgress: 0,
+  currentDifficulty: 'all',
+  cards: [],
+  originalCards: []
+};
+
+// Card sets by difficulty
+const flashcards = {
+  easy: [
+    { 
+      q: "Что такое инерция?", 
+      a: "Свойство тела сохранять состояние покоя или равномерного прямолинейного движения.",
+      theme: "inertia",
+      bg: "https://images.unsplash.com/photo-1534796636912-3b95b3ab5986?ixlib=rb-1.2.1&auto=format&fit=crop&w=1350&q=80",
+      keywords: ["инерция", "покой", "движение", "состояние", "свойство тела"]
+    },
+    { 
+      q: "Единица измерения силы?", 
+      a: "Ньютон (Н)",
+      theme: "force",
+      bg: "https://images.unsplash.com/photo-1518770660439-4636190af475?ixlib=rb-1.2.1&auto=format&fit=crop&w=1350&q=80",
+      keywords: ["ньютон", "н", "сила", "единица"]
+    },
+    { 
+      q: "Формула силы?", 
+      a: "F = ma (сила = масса × ускорение)",
+      theme: "formula",
+      bg: "https://images.unsplash.com/photo-1505506874110-6a7a69069a08?ixlib=rb-1.2.1&auto=format&fit=crop&w=1350&q=80",
+      keywords: ["f=ma", "сила масса ускорение", "f = ma", "f=m*a", "f = m*a", "формула силы"]
+    },
+    { 
+      q: "Что измеряют в ваттах?", 
+      a: "Мощность",
+      theme: "power",
+      bg: "https://images.unsplash.com/photo-1508514177221-188b1cf16e9d?ixlib=rb-1.2.1&auto=format&fit=crop&w=1350&q=80",
+      keywords: ["мощность", "ватт", "измерение", "единица измерения"]
+    },
+    { 
+      q: "Формула для вычисления скорости?", 
+      a: "v = s/t (скорость = путь/время)",
+      theme: "velocity",
+      bg: "https://images.unsplash.com/photo-1454789415558-bdda08f4eabb?ixlib=rb-1.2.1&auto=format&fit=crop&w=1350&q=80",
+      keywords: ["скорость", "v=s/t", "v = s/t", "путь", "время", "формула скорости"]
+    }
+  ],
+  medium: [
+    { 
+      q: "Что такое импульс тела?", 
+      a: "Векторная физическая величина, равная произведению массы тела на его скорость. p = mv.",
+      theme: "momentum",
+      bg: "https://images.unsplash.com/photo-1519692933481-e162a57d6721?ixlib=rb-1.2.1&auto=format&fit=crop&w=1350&q=80",
+      keywords: ["импульс", "масса", "скорость", "p=mv", "p = mv", "формула импульса"]
+    },
+    { 
+      q: "Сформулируйте третий закон Ньютона.", 
+      a: "Силы, с которыми два тела действуют друг на друга, равны по модулю и противоположны по направлению.",
+      theme: "newton",
+      bg: "https://images.unsplash.com/photo-1531804055935-76f44d7c3621?ixlib=rb-1.2.1&auto=format&fit=crop&w=1350&q=80",
+      keywords: ["третий закон ньютона", "закон", "противодействие", "сила", "противоположны"]
+    },
+    { 
+      q: "Что такое работа в физике?", 
+      a: "Физическая величина, равная скалярному произведению силы на перемещение. A = F·s·cos(α).",
+      theme: "work",
+      bg: "https://images.unsplash.com/photo-1454165205744-3b78555e5572?ixlib=rb-1.2.1&auto=format&fit=crop&w=1350&q=80",
+      keywords: ["работа", "сила", "перемещение", "скалярное произведение", "формула работы"]
+    },
+    { 
+      q: "Формула кинетической энергии?", 
+      a: "Ek = mv²/2 (кинетическая энергия = масса × скорость² / 2)",
+      theme: "energy",
+      bg: "https://images.unsplash.com/photo-1457364887197-9150188c107b?ixlib=rb-1.2.1&auto=format&fit=crop&w=1350&q=80",
+      keywords: ["кинетическая энергия", "формула", "масса", "скорость", "ek=mv²/2", "ek = mv²/2"]
+    },
+    { 
+      q: "Что такое ускорение свободного падения и чему оно равно?", 
+      a: "Ускорение, с которым тело падает на Землю. g ≈ 9.8 м/с².",
+      theme: "gravity",
+      bg: "https://images.unsplash.com/photo-1544511916-0148ccdeb877?ixlib=rb-1.2.1&auto=format&fit=crop&w=1350&q=80",
+      keywords: ["ускорение свободного падения", "g", "9.8", "земля", "гравитация"]
+    }
+  ],
+  hard: [
+    { 
+      q: "Сформулируйте закон сохранения импульса.", 
+      a: "В замкнутой системе векторная сумма импульсов тел остаётся постоянной при любых взаимодействиях тел этой системы между собой.",
+      theme: "conservation",
+      bg: "https://images.unsplash.com/photo-1516339901601-2e1b62dc0c45?ixlib=rb-1.2.1&auto=format&fit=crop&w=1350&q=80",
+      keywords: ["закон сохранения импульса", "замкнутая система", "векторная сумма", "постоянная", "взаимодействие"]
+    },
+    { 
+      q: "Что такое момент силы?", 
+      a: "Векторная физическая величина, равная векторному произведению радиус-вектора, проведённого от оси вращения к точке приложения силы, на вектор силы. M = r × F.",
+      theme: "torque",
+      bg: "https://images.unsplash.com/photo-1507413245164-6160d8298b31?ixlib=rb-1.2.1&auto=format&fit=crop&w=1350&q=80",
+      keywords: ["момент силы", "векторное произведение", "ось вращения", "радиус-вектор", "m = r × f", "рычаг"]
+    },
+    { 
+      q: "Формула потенциальной энергии тела в гравитационном поле Земли?", 
+      a: "Ep = mgh (потенциальная энергия = масса × ускорение свободного падения × высота)",
+      theme: "potential",
+      bg: "https://images.unsplash.com/photo-1509515837298-2c67a3933321?ixlib=rb-1.2.1&auto=format&fit=crop&w=1350&q=80",
+      keywords: ["потенциальная энергия", "формула", "гравитационное поле", "масса", "высота", "ep=mgh", "ep = mgh"]
+    },
+    { 
+      q: "Запишите уравнение Бернулли.", 
+      a: "p + ρgh + ρv²/2 = const (давление + плотность × g × высота + плотность × скорость²/2 = постоянная величина)",
+      theme: "bernoulli",
+      bg: "https://images.unsplash.com/photo-1503058474900-cb76710f9cd1?ixlib=rb-1.2.1&auto=format&fit=crop&w=1350&q=80",
+      keywords: ["уравнение бернулли", "давление", "плотность", "скорость", "постоянная", "гидродинамика"]
+    },
+    { 
+      q: "Что описывает уравнение Шрёдингера?", 
+      a: "Изменение во времени волновой функции квантовой системы. Является основным уравнением квантовой механики.",
+      theme: "quantum",
+      bg: "https://images.unsplash.com/photo-1561154464-82e9adf32764?ixlib=rb-1.2.1&auto=format&fit=crop&w=1350&q=80",
+      keywords: ["уравнение шрёдингера", "квантовая механика", "волновая функция", "квантовая система", "время"]
+    }
+  ]
+};
+
+// DOM elements
+const cardElement = document.getElementById('card');
+const frontElement = document.getElementById('front');
+const backElement = document.getElementById('back');
+const scoreElement = document.getElementById('score');
+const levelElement = document.getElementById('level');
+const comboElement = document.getElementById('combo');
+const counterElement = document.getElementById('counter');
+const progressBarElement = document.getElementById('progress-bar');
+const answerSectionElement = document.getElementById('answer-section');
+const answerInputElement = document.getElementById('answer-input');
+const feedbackElement = document.getElementById('feedback');
+const taskCounterElement = document.getElementById('task-counter');
+const taskProgressBarElement = document.getElementById('task-progress-bar');
+const levelSelectElement = document.getElementById('levelSelect');
+
+// Initialize the application
+function initApp() {
+  // Initialize particles.js
+  particlesJS('particles-js', {
+    "particles": {
+      "number": { "value": 80, "density": { "enable": true, "value_area": 800 } },
+      "color": { "value": "#00F5FF" },
+      "shape": { "type": "circle" },
+      "opacity": { "value": 0.5, "random": true },
+      "size": { "value": 3, "random": true },
+      "line_linked": { "enable": true, "distance": 150, "color": "#00F5FF", "opacity": 0.2, "width": 1 },
+      "move": { "enable": true, "speed": 2, "direction": "none", "random": true, "straight": false, "out_mode": "out" }
+    },
+    "interactivity": {
+      "detect_on": "canvas",
+      "events": {
+        "onhover": { "enable": true, "mode": "repulse" },
+        "onclick": { "enable": true, "mode": "push" }
+      }
+    }
+  });
+
+  // Load game state from localStorage if available
+  loadGameState();
+
+  // Setup event listeners
+  setupEventListeners();
+
+  // Initialize cards based on difficulty
+  initCards();
+
+  // Render the first card
+  renderCurrentCard();
+
+  // Update stats display
+  updateStatsDisplay();
+  
+  // Update task progress display
+  updateTaskProgress();
+  
+  // Update counter display
+  updateCounter();
+}
+
+// Save game state to localStorage
+function saveGameState() {
+  localStorage.setItem('cosmicPhysicsFlash', JSON.stringify(gameState));
+}
+
+// Load game state from localStorage
+function loadGameState() {
+  const savedState = localStorage.getItem('cosmicPhysicsFlash');
+  if (savedState) {
+    gameState = JSON.parse(savedState);
+  }
+}
+
+// Setup event listeners
+function setupEventListeners() {
+  // Card flip on click
+  cardElement.addEventListener('click', flipCard);
+
+  // Check answer button
+  document.getElementById('check-answer').addEventListener('click', checkAnswer);
+
+  // Answer input enter key
+  answerInputElement.addEventListener('keyup', function(event) {
+    if (event.key === "Enter") {
+      checkAnswer();
+    }
+  });
+}
+
+// Initialize cards based on difficulty
+function initCards() {
+  if (gameState.cards.length === 0) {
+    // First time setup
+    selectLevel();
+  }
+}
+
+// Select difficulty level
+function selectLevel() {
+  const selectedDifficulty = levelSelectElement.value;
+  gameState.currentDifficulty = selectedDifficulty;
+  
+  if (selectedDifficulty === 'all') {
+    // Combine all difficulty levels
+    gameState.cards = [
+      ...flashcards.easy,
+      ...flashcards.medium,
+      ...flashcards.hard
+    ];
+  } else {
+    // Use specific difficulty level
+    gameState.cards = [...flashcards[selectedDifficulty]];
+  }
+  
+  // Save original order for reset
+  gameState.originalCards = [...gameState.cards];
+  
+  // Reset current index to start
+  gameState.currentCardIndex = 0;
+  
+  // Update counter
+  updateCounter();
+  
+  // Render current card
+  renderCurrentCard();
+  
+  // Save game state
+  saveGameState();
+}
+
+// Shuffle the deck of cards
+function shuffleDeck() {
+  // Fisher-Yates shuffle algorithm
+  for (let i = gameState.cards.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [gameState.cards[i], gameState.cards[j]] = [gameState.cards[j], gameState.cards[i]];
+  }
+  
+  // Reset current index to start
+  gameState.currentCardIndex = 0;
+  
+  // Update counter
+  updateCounter();
+  
+  // Render current card
+  renderCurrentCard();
+  
+  // Save game state
+  saveGameState();
+  
+  // Visual feedback
+  showMessage("Колода перемешана!", "praise");
+}
+
+// Reset game stats
+function resetStats() {
+  if (confirm("Вы уверены, что хотите сбросить весь прогресс?")) {
+    gameState.score = 0;
+    gameState.level = 1;
+    gameState.combo = 0;
+    gameState.cardsAnswered = 0;
+    gameState.dailyTaskProgress = 0;
+    gameState.currentCardIndex = 0;
+    
+    // Restore original card order
+    gameState.cards = [...gameState.originalCards];
+    
+    // Update UI
+    updateStatsDisplay();
+    updateCounter();
+    renderCurrentCard();
+    updateTaskProgress();
+    
+    // Save game state
+    saveGameState();
+    
+    // Visual feedback
+    showMessage("Прогресс сброшен!", "wrong");
+  }
+}
+
+// Flip the card
+function flipCard() {
+  cardElement.classList.toggle('flipped');
+}
+
+// Go to previous card
+function prevCard() {
+  if (gameState.currentCardIndex > 0) {
+    gameState.currentCardIndex--;
+    updateCounter();
+    renderCurrentCard();
+    
+    // Reset card to front side if flipped
+    if (cardElement.classList.contains('flipped')) {
+      cardElement.classList.remove('flipped');
+    }
+    
+    // Hide answer input if visible
+    hideAnswerInput();
+    
+    // Save game state
+    saveGameState();
+  }
+}
+
+// Go to next card
+function nextCard() {
+  if (gameState.currentCardIndex < gameState.cards.length - 1) {
+    gameState.currentCardIndex++;
+  } else {
+    gameState.currentCardIndex = 0; // Loop back to the first card
+  }
+  
+  updateCounter();
+  renderCurrentCard();
+  
+  // Reset card to front side if flipped
+  if (cardElement.classList.contains('flipped')) {
+    cardElement.classList.remove('flipped');
+  }
+  
+  // Hide answer input if visible
+  hideAnswerInput();
+  
+  // Save game state
+  saveGameState();
+}
+
+// Render the current card
+function renderCurrentCard() {
+  const currentCard = gameState.cards[gameState.currentCardIndex];
+  
+  if (currentCard) {
+    // Update card content
+    frontElement.textContent = currentCard.q;
+    backElement.textContent = currentCard.a;
+    
+    // Change background image based on card theme
+    if (currentCard.bg) {
+      document.body.style.backgroundImage = linear-gradient(rgba(11, 13, 23, 0.8), rgba(11, 13, 23, 0.8)), url('${currentCard.bg}');
+    }
+  } else {
+    // Fallback if no card exists
+    frontElement.textContent = "Карточки не найдены";
+    backElement.textContent = "Пожалуйста, выберите уровень сложности";
+  }
+}
+
+// Show answer input section
+function showAnswerInput() {
+  answerSectionElement.style.display = 'block';
+  answerInputElement.focus();
+  feedbackElement.textContent = '';
+  feedbackElement.className = 'feedback';
+}
+
+// Hide answer input section
+function hideAnswerInput() {
+  answerSectionElement.style.display = 'none';
+  answerInputElement.value = '';
+  feedbackElement.textContent = '';
+}
+
+// Check user's answer
+function checkAnswer() {
+  const userAnswer = answerInputElement.value.trim().toLowerCase();
+  const currentCard = gameState.cards[gameState.currentCardIndex];
+  
+  if (!userAnswer) {
+    showMessage("Пожалуйста, введите ответ", "wrong");
+    return;
+  }
+  
+  let isCorrect = false;
+  
+  // Check against keywords for more flexible matching
+  if (currentCard.keywords && currentCard.keywords.length > 0) {
+    isCorrect = currentCard.keywords.some(keyword => 
+      userAnswer.includes(keyword.toLowerCase())
+    );
+  } else {
+    // Fallback to simple check if no keywords
+    const correctAnswer = currentCard.a.toLowerCase();
+    isCorrect = userAnswer.includes(correctAnswer) || correctAnswer.includes(userAnswer);
+  }
+  
+  if (isCorrect) {
+    handleCorrectAnswer();
+  } else {
+    handleWrongAnswer();
+  }
+  
+  // Save game state
+  saveGameState();
+}
+
+// Handle correct answer
+function handleCorrectAnswer() {
+  // Increment combo
+  gameState.combo++;
+  
+  // Calculate points based on combo
+  const points = 10 * gameState.combo;
+  
+  // Add points to score
+  gameState.score += points;
+  
+  // Increment cards answered
+  gameState.cardsAnswered++;
+  
+  // Update daily task progress
+  updateDailyTask(true);
+  
+  // Check for level up
+  checkLevelUp();
+  
+  // Update display
+  updateStatsDisplay();
+  
+  // Show feedback
+  showMessage(Правильно! +${points} очков, "correct");
+  
+  // Show celebration effect for good combos
+  if (gameState.combo >= 3) {
+    createConfetti();
+  }
+  
+  // Automatically go to next card after delay
+  setTimeout(() => {
+    nextCard();
+    hideAnswerInput();
+  }, 2000);
+}
+
+// Handle wrong answer
+function handleWrongAnswer() {
+  // Reset combo
+  gameState.combo = 0;
+  
+  // Update display
+  updateStatsDisplay();
+  
+  // Show feedback
+  showMessage("Неверно. Попробуйте ещё раз или проверьте ответ.", "wrong");
+  
+  // Flip card to show answer after a few attempts
+  if (!cardElement.classList.contains('flipped')) {
+    setTimeout(() => {
+      cardElement.classList.add('flipped');
+    }, 1500);
+  }
+}
+
+// Update daily task progress
+function updateDailyTask(isCorrect) {
+  if (isCorrect && gameState.dailyTaskProgress < 5) {
+    gameState.dailyTaskProgress++;
+    
+    // If task completed
+    if (gameState.dailyTaskProgress === 5) {
+      // Reward with bonus points
+      gameState.score += 50;
+      showMessage("Ежедневная задача выполнена! +50 очков", "praise");
+    }
+    
+    updateTaskProgress();
+  }
+}
+
+// Update task progress display
+function updateTaskProgress() {
+  taskCounterElement.textContent = ${gameState.dailyTaskProgress}/5;
+  const progressPercent = (gameState.dailyTaskProgress / 5) * 100;
+  taskProgressBarElement.style.width = ${progressPercent}%;
+}
+
+// Check if player should level up
+function checkLevelUp() {
+  const newLevel = Math.floor(gameState.score / 100) + 1;
+  
+  if (newLevel > gameState.level) {
+    gameState.level = newLevel;
+    showLevelUpMessage();
+  }
+  
+  // Update progress bar
+  const progressToNextLevel = (gameState.score % 100) / 100;
+  progressBarElement.style.width = ${progressToNextLevel * 100}%;
+}
+
+// Display level up message
+function showLevelUpMessage() {
+  const levelUpElement = document.createElement('div');
+  levelUpElement.className = 'level-up';
+  levelUpElement.textContent = УРОВЕНЬ ${gameState.level}!;
+  document.body.appendChild(levelUpElement);
+  
+  // Create more intense confetti
+  createConfetti(100);
+  
+  // Remove element after animation
+  setTimeout(() => {
+    document.body.removeChild(levelUpElement);
+  }, 2000);
+}
+
+// Show feedback message
+function showMessage(message, type) {
+  feedbackElement.textContent = message;
+  feedbackElement.className = feedback ${type};
+}
+
+// Create confetti effect
+function createConfetti(count = 50) {
+  for (let i = 0; i < count; i++) {
+    const confetti = document.createElement('div');
+    confetti.className = 'confetti';
+    
+    // Random position, color and size
+    confetti.style.left = ${Math.random() * 100}vw;
+    confetti.style.backgroundColor = getRandomColor();
+    confetti.style.width = ${5 + Math.random() * 10}px;
+    confetti.style.height = ${5 + Math.random() * 10}px;
+    
+    // Add to DOM
+    document.body.appendChild(confetti);
+    
+    // Remove after animation
+    setTimeout(() => {
+      document.body.removeChild(confetti);
+    }, 3000);
+  }
+}
+
+// Generate random bright color
+function getRandomColor() {
+  const colors = [
+    '#00F5FF', // Neon blue
+    '#FF10F0', // Neon pink
+    '#FFE81F', // Star yellow
+    '#00FF87', // Neon green
+    '#FF6B00'  // Neon orange
+  ];
+  return colors[Math.floor(Math.random() * colors.length)];
+}
+
+// Update the card counter
+function updateCounter() {
+  counterElement.textContent = ${gameState.currentCardIndex + 1}/${gameState.cards.length};
+}
+
+// Update all stats display elements
+function updateStatsDisplay() {
+  scoreElement.textContent = gameState.score;
+  levelElement.textContent = gameState.level;
+  comboElement.textContent = ${gameState.combo}x;
+  
+  // Update progress bar for level
+  const progressToNextLevel = (gameState.score % 100) / 100;
+  progressBarElement.style.width = ${progressToNextLevel * 100}%;
+}
+
+// Initialize the app when the DOM is loaded
+document.addEventListener('DOMContentLoaded', initApp);
+:root {
+  --space-dark: #0B0D17;
+  --neon-blue: #00F5FF;
+  --neon-pink: #FF10F0;
+  --star-yellow: #FFE81F;
+  --card-bg: rgba(13, 17, 31, 0.8);
+  --text-light: #E0E0E0;
+}
+
+body {
+  margin: 0;
+  padding: 0;
+  font-family: 'Roboto', sans-serif;
+  background: var(--space-dark);
+  color: var(--text-light);
+  overflow-x: hidden;
+  min-height: 100vh;
+  position: relative;
+  transition: background-image 0.5s ease;
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+  background-attachment: fixed;
+  background-image: linear-gradient(rgba(11, 13, 23, 0.8), rgba(11, 13, 23, 0.8)), url('https://images.unsplash.com/photo-1534796636912-3b95b3ab5986?ixlib=rb-1.2.1&auto=format&fit=crop&w=1350&q=80');
+}
+
+#particles-js {
+  position: fixed;
+  width: 100%;
+  height: 100%;
+  z-index: -1;
+  opacity: 0.7;
+}
+
+.container {
+  max-width: 800px;
+  margin: 0 auto;
+  padding: 20px;
+  text-align: center;
+  background-color: rgba(11, 13, 23, 0.7);
+  border-radius: 15px;
+  box-shadow: 0 0 30px rgba(0, 245, 255, 0.2);
+}
+
+h1 {
+  font-family: 'Orbitron', sans-serif;
+  color: var(--neon-blue);
+  text-shadow: 0 0 10px var(--neon-blue);
+  margin-bottom: 5px;
+  font-size: 2.5rem;
+}
+
+.subtitle {
+  color: var(--neon-pink);
+  margin-bottom: 30px;
+  font-size: 1.2rem;
+}
+
+#game-stats {
+  display: flex;
+  justify-content: space-around;
+  background: rgba(0,0,0,0.5);
+  padding: 15px;
+  border-radius: 10px;
+  margin-bottom: 20px;
+  border: 1px solid var(--neon-blue);
+}
+
+.stat {
+  display: flex;
+  flex-direction: column;
+}
+
+.stat-value {
+  font-family: 'Orbitron', sans-serif;
+  font-size: 1.5rem;
+  color: var(--star-yellow);
+}
+
+#card-container {
+  perspective: 1000px;
+  width: 100%;
+  max-width: 500px;
+  height: 300px;
+  margin: 20px auto;
+  position: relative;
+}
+
+#card {
+  width: 100%;
+  height: 100%;
+  position: relative;
+  transform-style: preserve-3d;
+  transition: transform 0.8s cubic-bezier(0.68, -0.55, 0.27, 1.55);
+  cursor: pointer;
+}
+
+.side {
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  backface-visibility: hidden;
+  border-radius: 15px;
+  padding: 30px;
+  box-sizing: border-box;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--card-bg);
+  box-shadow: 0 0 20px rgba(0, 245, 255, 0.3);
+  border: 2px solid var(--neon-blue);
+  text-align: center;
+  font-size: 1.3rem;
+  overflow: auto;
+}
+
+.back {
+  transform: rotateY(180deg);
+  border-color: var(--neon-pink);
+}
+
+.flipped {
+  transform: rotateY(180deg);
+}
+
+.controls {
+  display: flex;
+  justify-content: center;
+  flex-wrap: wrap;
+  gap: 15px;
+  margin-top: 30px;
+}
+
+button {
+  background: linear-gradient(45deg, #0B0D17, #1A1C2E);
+  color: white;
+  border: none;
+  padding: 12px 25px;
+  border-radius: 50px;
+  font-family: 'Orbitron', sans-serif;
+  cursor: pointer;
+  transition: all 0.3s;
+  position: relative;
+  overflow: hidden;
+  box-shadow: 0 0 10px rgba(0, 245, 255, 0.3);
+  border: 1px solid var(--neon-blue);
+}
+
+button:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 0 20px rgba(0, 245, 255, 0.5);
+}
+
+button:active {
+  transform: translateY(1px);
+}
+
+button::before {
+  content: '';
+  position: absolute;
+  top: -50%;
+  left: -50%;
+  width: 200%;
+  height: 200%;
+  background: linear-gradient(
+    to bottom right,
+    transparent,
+    transparent,
+    transparent,
+    var(--neon-blue),
+    transparent,
+    transparent
+  );
+  transform: rotate(30deg);
+  opacity: 0;
+  transition: all 0.5s;
+}
+
+button:hover::before {
+  animation: shine 1.5s;
+}
+
+@keyframes shine {
+  0% { opacity: 0; left: -50%; }
+  50% { opacity: 0.8; }
+  100% { opacity: 0; left: 150%; }
+}
+
+.difficulty-selector {
+  margin-top: 20px;
+}
+
+select {
+  background: var(--space-dark);
+  color: white;
+  border: 1px solid var(--neon-blue);
+  padding: 10px 15px;
+  border-radius: 50px;
+  font-family: 'Orbitron', sans-serif;
+  cursor: pointer;
+  outline: none;
+}
+
+.progress-container {
+  width: 100%;
+  height: 10px;
+  background: rgba(0,0,0,0.3);
+  border-radius: 5px;
+  margin-top: 30px;
+  overflow: hidden;
+}
+
+#progress-bar {
+  height: 100%;
+  width: 0%;
+  background: linear-gradient(90deg, var(--neon-pink), var(--neon-blue));
+  transition: width 0.5s;
+}
+
+.confetti {
+  position: fixed;
+  width: 10px;
+  height: 10px;
+  background-color: var(--neon-pink);
+  opacity: 0;
+  z-index: 1000;
+  animation: confetti-fall 3s ease-in-out;
+}
+
+@keyframes confetti-fall {
+  0% {
+    transform: translateY(-100px) rotate(0deg);
+    opacity: 1;
+  }
+  100% {
+    transform: translateY(1000px) rotate(360deg);
+    opacity: 0;
+  }
+}
+
+.level-up {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  font-size: 3rem;
+  color: var(--star-yellow);
+  text-shadow: 0 0 20px var(--star-yellow);
+  opacity: 0;
+  z-index: 1001;
+  animation: level-up 2s;
+  font-family: 'Orbitron', sans-serif;
+}
+
+@keyframes level-up {
+  0% { opacity: 0; transform: translate(-50%, -50%) scale(0.5); }
+  20% { opacity: 1; transform: translate(-50%, -50%) scale(1.2); }
+  80% { opacity: 1; transform: translate(-50%, -50%) scale(1.2); }
+  100% { opacity: 0; transform: translate(-50%, -50%) scale(0.5); }
+}
+
+#answer-input {
+  background: rgba(13, 17, 31, 0.8);
+  border: 2px solid var(--neon-blue);
+  color: white;
+  padding: 10px 15px;
+  border-radius: 5px;
+  font-size: 1rem;
+  width: 80%;
+  max-width: 400px;
+  margin-top: 15px;
+  font-family: 'Roboto', sans-serif;
+}
+
+#answer-input:focus {
+  outline: none;
+  border-color: var(--neon-pink);
+  box-shadow: 0 0 10px var(--neon-pink);
+}
+
+#check-answer {
+  margin-top: 10px;
+  background: linear-gradient(45deg, #0B0D17, #1A1C2E);
+  border: 1px solid var(--neon-pink);
+}
+
+#check-answer:hover {
+  box-shadow: 0 0 20px rgba(255, 16, 240, 0.5);
+}
+
+.feedback {
+  margin-top: 15px;
+  font-size: 1.2rem;
+  min-height: 24px;
+}
+
+.correct {
+  color: #00FF87;
+  text-shadow: 0 0 5px #00FF87;
+}
+
+.wrong {
+  color: #FF6B00;
+  text-shadow: 0 0 5px #FF6B00;
+}
+
+.praise {
+  color: var(--star-yellow);
+  text-shadow: 0 0 5px var(--star-yellow);
+  font-weight: bold;
+  font-size: 1.3rem;
+}
+
+.daily-task {
+  background: rgba(0, 245, 255, 0.1);
+  padding: 10px;
+  border-radius: 10px;
+  margin: 15px 0;
+  border: 1px solid var(--neon-blue);
+}
+
+.task-progress {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-top: 5px;
+}
+
+.task-bar {
+  height: 10px;
+  background: rgba(0,0,0,0.3);
+  border-radius: 5px;
+  flex-grow: 1;
+  margin: 0 10px;
+  overflow: hidden;
+}
+
+.task-progress-bar {
+  height: 100%;
+  background: linear-gradient(90deg, var(--neon-pink), var(--neon-blue));
+  transition: width 0.5s;
+}
+
+.task-reward {
+  color: var(--star-yellow);
+  font-weight: bold;
+}
+
+@media (max-width: 600px) {
+  h1 {
+    font-size: 1.8rem;
+  }
+  .side {
+    padding: 20px;
+    font-size: 1.1rem;
+  }
+  #card-container {
+    height: 250px;
+  }
+  .controls button {
+    padding: 10px 15px;
+    font-size: 0.9rem;
+  }
+}
+</html>
